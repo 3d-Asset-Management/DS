@@ -39,9 +39,9 @@ class PineconeOps:
 
         metadata = {
             "unique_id" : unique_id,
-            "id" : entry["id"],
+            "bucket_name" : entry["bucket-name"],
+            "img_id" : entry["img-id"],
             "category" : "fmcg",
-            "s3_link" : entry["s3-link"],
             "subcategory" : entry["sub-category"],
             "description" : entry["description"],
             "date":entry["date-of-creation"]

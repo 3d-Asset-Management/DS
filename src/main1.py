@@ -22,7 +22,9 @@ import asyncio
 
 from pinecone import Pinecone
 from utils import SearchRequest
-from fastapi import HTTPException
+from fastapi import FastAPI , HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"])
@@ -77,7 +79,7 @@ def generate_3d_bg(img_ops , s3_link):
 
     # save 3d model in a specified location
     model_path = os.path.join(final_path , "save/it100-export")
-    os.rename(img_ops.img_filepath , os.path.join(model_path , f"{id}.png"))
+    os.rename(img_ops.img_filepath , os.path.join(model_path , "image.png"))
 
     print("s3ops starting")
     s3_link = f"s3://model-store-capstone/{img_ops.img_id}"
@@ -85,8 +87,8 @@ def generate_3d_bg(img_ops , s3_link):
     print("s3 done")
 
     res =  {
-        "id":img_ops.img_id,
-        "s3-link":"s3_link",
+        "bucket-name":"model-store-capstone",
+        "img-id":img_ops.img_id,
         "date-of-creation": (datetime.now().strftime("%H:%M:%S , %d-%m-%Y")),
         "description":desc,
         "sub-category":cat
@@ -112,19 +114,6 @@ async def frontend_recursive(bucket_name : str = Form(...) , img_id : str = Form
         return {"status":"1"}
         
     return {"status":"0"}
-
-
-@app.post("/test_image" , response_model=simple_response)
-async def generate_3d(file : UploadFile = File(...) , img_id : str = Form(...)):
-
-    os.chdir("/workspace/threestudio")
-    contents = await file.read()
-    img = Image.open(io.BytesIO(contents))
-    print(img_id)
-
-    return {"message": "Jai Shree Ram",
-           "s3_link": "no_link"
-           }
 
 
 # findbyid_and_return_data
@@ -215,7 +204,7 @@ async def search_similar(query: str):
     result = pc.index.query(
         namespace="ns1",
         vector=query_vector,
-        top_k=4,
+        top_k=1,
         include_values=True,
         include_metadata=True
     )
@@ -223,9 +212,3 @@ async def search_similar(query: str):
     for match in result['matches']:
         metadata_list.append(match['metadata'])
     return metadata_list
-
-
-
-
-
-
