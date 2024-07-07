@@ -13,7 +13,7 @@ class llava_mdgen():
         model_id = "llava-hf/llava-1.5-7b-hf"
         self.pipe = pipeline("image-to-text", model=model_id, model_kwargs={"quantization_config": quantization_config})
 
-    def get_md(self , img , prompt):
+    def get_metadata(self , img , prompt):
 
         prompt = f"USER: <image>\n{prompt}\nASSISTANT:"
         outputs = self.pipe(img, prompt=prompt, generate_kwargs={"max_new_tokens": 200})

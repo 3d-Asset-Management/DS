@@ -1,18 +1,35 @@
-import os
-import re
+import subprocess
+from pydantic import BaseModel
+from typing import Optional
 
+def upload_s3(model_path , s3_link):
+        
+    try:
+        result = subprocess.run(
+            ['aws', 's3', 'cp', model_path, s3_link, '--recursive'],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        print("STDOUT:", result.stdout)
+        print("Upload Successful")
+    except subprocess.CalledProcessError as e:
+        print("STDERR:", e.stderr)
+        print("Upload Failed")
+    except FileNotFoundError:
+        print("AWS CLI not found. Please ensure AWS CLI is installed and in your PATH.")
 
-def threestudio_savedir(base_dir , pattern = rf'^\[64, 128, 256\]_{id}\.png@.*?$'):
+class simple_response(BaseModel):
+    message:str
+    bucket_name:str
+    img_id:str
 
-    for fn in os.listdir(base_dir):
-    
-        print(fn)
-        match = re.match(pattern, fn)
-    
-        if match:
-            current_path = os.path.join(base_dir , fn)
-            print(current_path)
-            
-    save_dir = os.path.join(current_path , "save")
+class recursive_response(BaseModel):
+    status:str  # 0 response not ready , 1 response ready
 
-    return save_dir
+class SearchRequest(BaseModel):
+    query: str
+    category: Optional[str] = None
+    subcategory: Optional[str] = None
+    sort_by_date: Optional[bool] = False
